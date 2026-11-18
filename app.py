@@ -175,55 +175,183 @@ def tela_fases():
         st.session_state.tela = "inicio"
         st.rerun()
 
+def gerar_passo_a_passo(pergunta):
+    """Monta uma explicação de acordo com o tipo da questão."""
+    tipo = pergunta["tipo"]
+    resposta = pergunta["resposta"]
+
+    if tipo == "equacao":
+        expressao = pergunta["conteudo"]
+        if resposta == "constante":
+            return (
+                f"1. Observe a expressão: {expressao}.\\n\\n"
+                "2. O resultado não depende do valor de x.\\n\\n"
+                "3. Portanto, a função mantém sempre o mesmo valor.\\n\\n"
+                "Conclusão: é uma Função Constante."
+            )
+        if resposta == "linear":
+            return (
+                f"1. Observe a expressão: {expressao}.\\n\\n"
+                "2. A variável x está multiplicada por um número.\\n\\n"
+                "3. Não há um termo independente somado ou subtraído; "
+                "o termo independente é zero.\\n\\n"
+                "4. A expressão tem a forma f(x) = ax.\\n\\n"
+                "Conclusão: é uma Função Linear."
+            )
+        return (
+            f"1. Observe a expressão: {expressao}.\\n\\n"
+            "2. Identifique o número que multiplica x.\\n\\n"
+            "3. Identifique o termo independente, que aparece somando "
+            "ou subtraindo.\\n\\n"
+            "4. A expressão tem a forma f(x) = ax + b, com b diferente de zero.\\n\\n"
+            "Conclusão: é uma Função Afim."
+        )
+
+    if tipo == "grafico":
+        params = pergunta["params"]
+        if resposta == "constante":
+            return (
+                "1. Observe o formato da reta: ela é horizontal.\\n\\n"
+                f"2. O valor de y permanece sempre em {params['b']}.\\n\\n"
+                "3. Como y não muda quando x varia, a função é constante."
+            )
+        if resposta == "linear":
+            a = params["a"]
+            return (
+                "1. Observe que a reta passa pela origem (0, 0).\\n\\n"
+                f"2. A inclinação da reta corresponde ao coeficiente {a}.\\n\\n"
+                f"3. Sua expressão é f(x) = {a}x.\\n\\n"
+                "Conclusão: é uma Função Linear."
+            )
+        a, b = params["a"], params["b"]
+        return (
+            "1. Observe que a reta é inclinada e não passa pela origem.\\n\\n"
+            f"2. Ela corta o eixo y no valor {b}.\\n\\n"
+            f"3. Sua expressão é f(x) = {a}x + ({b}).\\n\\n"
+            "Conclusão: é uma Função Afim."
+        )
+
+    if tipo == "tabela":
+        if resposta == "constante":
+            return (
+                "1. Observe os valores da linha y.\\n\\n"
+                "2. Todos os valores de y são iguais.\\n\\n"
+                "3. Mesmo quando x muda, y permanece igual.\\n\\n"
+                "Conclusão: é uma Função Constante."
+            )
+        if resposta == "linear":
+            return (
+                "1. Observe os pares de valores de x e y.\\n\\n"
+                "2. Quando x = 0, y = 0 (ou a tabela apresenta uma "
+                "proporção direta entre x e y).\\n\\n"
+                "3. A razão entre y e x é constante; assim, y = ax.\\n\\n"
+                "Conclusão: é uma Função Linear."
+            )
+        return (
+            "1. Observe o valor de y quando x = 0: ele é diferente de zero.\\n\\n"
+            "2. Verifique que y aumenta sempre a mesma quantidade "
+            "quando x aumenta uma unidade.\\n\\n"
+            "3. Isso indica uma taxa de variação constante e um termo "
+            "independente diferente de zero.\\n\\n"
+            "Conclusão: é uma Função Afim."
+        )
+
+    if tipo == "situacao":
+        conteudo = pergunta["conteudo"]
+        if "estacionamento" in conteudo:
+            return (
+                "1. O estacionamento cobra R$ 8,00 por hora.\\n\\n"
+                "2. Não existe taxa fixa de entrada.\\n\\n"
+                "3. Multiplique R$ 8,00 pela quantidade de horas: f(x) = 8x.\\n\\n"
+                "Conclusão: é uma Função Linear."
+            )
+        if "streaming" in conteudo:
+            return (
+                "1. A assinatura tem preço fixo de R$ 29,90 por mês.\\n\\n"
+                "2. O valor informado não depende de outra quantidade variável.\\n\\n"
+                "3. O resultado permanece fixo.\\n\\n"
+                "Conclusão: é uma Função Constante."
+            )
+        if "Corrida" in conteudo:
+            return (
+                "1. Existe uma taxa fixa de R$ 5,00.\\n\\n"
+                "2. Cada quilômetro acrescenta R$ 2,50.\\n\\n"
+                "3. Multiplique 2,50 pela quantidade de quilômetros e some 5: "
+                "f(x) = 2,5x + 5.\\n\\n"
+                "Conclusão: é uma Função Afim."
+            )
+        if "temperatura" in conteudo:
+            return (
+                "1. A temperatura é de 22 °C.\\n\\n"
+                "2. O enunciado informa que ela permanece igual ao longo do tempo.\\n\\n"
+                "3. Como não há variação, a função é constante."
+            )
+        if "Preço" in conteudo:
+            return (
+                "1. Há um custo fixo de R$ 40,00.\\n\\n"
+                "2. Cada unidade acrescenta R$ 12,00.\\n\\n"
+                "3. Multiplique 12 pela quantidade de unidades e some 40: "
+                "f(x) = 12x + 40.\\n\\n"
+                "Conclusão: é uma Função Afim."
+            )
+
+    return "Observe os dados e verifique se o resultado é fixo, proporcional a x ou se combina uma taxa variável com um valor fixo."
+
+
 def verificar_resposta(escolha, pergunta):
     correta = escolha == pergunta["resposta"]
     st.session_state.respondida = True
     st.session_state.ultima_resposta_correta = correta
+
     if correta:
         st.session_state.acertos_fase += 1
         st.session_state.pontos += 5
         desbloquear_fases()
+
     st.rerun()
+
 
 def tela_quiz():
     fase = st.session_state.fase_atual
     perguntas = st.session_state.perguntas_fase
     idx = st.session_state.indice_pergunta
-    
+
     if idx >= len(perguntas):
         st.session_state.tela = "resultado"
         st.rerun()
         return
-    
+
     pergunta = perguntas[idx]
     total = len(perguntas)
-    
+
     col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
         if st.button("← Sair"):
             st.session_state.tela = "fases"
             st.rerun()
     with col2:
-        st.markdown(f"**Fase {fase}** • Pergunta {idx+1}/{total}")
+        st.markdown(f"**Fase {fase}** • Pergunta {idx + 1}/{total}")
     with col3:
         st.markdown(f"⭐ **{st.session_state.pontos}**")
-    
+
     st.progress(idx / total)
     st.subheader(pergunta["enunciado"])
-    
+
     if pergunta["tipo"] == "equacao":
         st.code(pergunta["conteudo"], language=None)
     elif pergunta["tipo"] == "grafico":
-        fig = gerar_grafico(pergunta["grafico_tipo"], 
-                            a=pergunta["params"].get("a"), 
-                            b=pergunta["params"].get("b"))
+        fig = gerar_grafico(
+            pergunta["grafico_tipo"],
+            a=pergunta["params"].get("a"),
+            b=pergunta["params"].get("b")
+        )
         st.pyplot(fig)
         plt.close(fig)
     elif pergunta["tipo"] == "tabela":
         st.markdown(pergunta["conteudo"])
     elif pergunta["tipo"] == "situacao":
         st.info(pergunta["conteudo"])
-    
+
     if not st.session_state.respondida:
         col_a, col_b, col_c = st.columns(3)
         with col_a:
@@ -237,14 +365,24 @@ def tela_quiz():
                 verificar_resposta("afim", pergunta)
     else:
         if st.session_state.ultima_resposta_correta:
-            st.success(f"✅ Correto! {pergunta['explicacao']}")
+            st.success(
+                f"✅ Muito bem! Você acertou!\\n\\n{pergunta['explicacao']}"
+            )
         else:
-            st.error(f"❌ Quase! A resposta certa era **{pergunta['resposta'].capitalize()}**.\n\n{pergunta['explicacao']}")
-        
+            st.error(
+                f"❌ Não foi dessa vez!\\n\\n"
+                f"A resposta correta era: **{pergunta['resposta'].capitalize()}**.\\n\\n"
+                f"{pergunta['explicacao']}"
+            )
+
+        with st.expander("🧠 Aprenda a resolver esta questão", expanded=True):
+            st.markdown(gerar_passo_a_passo(pergunta))
+
         if st.button("Próxima pergunta →", type="primary"):
             st.session_state.indice_pergunta += 1
             st.session_state.respondida = False
             st.rerun()
+
 
 def tela_resultado():
     fase = st.session_state.fase_atual
